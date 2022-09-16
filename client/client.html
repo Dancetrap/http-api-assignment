@@ -5,7 +5,65 @@
   <link rel="stylesheet" type="text/css" href="/style.css">
   
   <script>
+    const handleResponse = async (response) => {
+      const content = document.getElementById('content');
 
+      switch(response.status){
+        case 200:
+          content.innerHTML = `<b>Success!</b>`;
+          break;
+        case 400:
+          content.innerHTML = `<b>Bad Request</b>`;
+          break;
+        case 401:
+          content.innerHTML = `<b>Unauthorized</b>`;
+          break;
+        case 403:
+          content.innerHTML = `<b>Forbidden</b>`;
+          break;
+        case 404:
+          content.innerHTML = `<b>Not Found</b>`;
+          break;
+        case 500:
+          content.innerHTML = `<b>Internal Error</b>`;
+          break;
+        case 501:
+          content.innerHTML = `<b>Not Implemented</b>`;
+          break;
+        default:
+          content.innerHTML = `<p>Code not implemented</p>`;
+          break;
+      }
+
+      let resObj = await response.json();
+      content.innerHTML += `<p>${resObj.message}</p>`;
+
+    };
+
+    const sendFetch = async (url) => {
+      //Call fetch, wait til we get a response, and then store that response in the variable.
+      let response = await fetch(url);
+
+      //Call handleResponse with the response we got back from the server.
+      handleResponse(response);
+    };
+
+    const consoleTest = () => {
+      const page = document.getElementById('page');
+      console.log(page.value);
+    };
+
+    const init = () => {
+      const page = document.getElementById('page');
+
+      const responseType = () => sendFetch(page.value);
+
+      const send = document.getElementById('send');
+      send.addEventListener('click',responseType);
+    };
+    
+
+    window.onload = init;
   </script>
 </head>
 <body>
