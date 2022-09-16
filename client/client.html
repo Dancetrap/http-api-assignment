@@ -7,6 +7,7 @@
   <script>
     const handleResponse = async (response) => {
       const content = document.getElementById('content');
+      let contentType = response.headers.get('Content-Type');
 
       switch(response.status){
         case 200:
@@ -35,17 +36,46 @@
           break;
       }
 
-      let resObj = await response.json();
-      content.innerHTML += `<p>${resObj.message}</p>`;
+    response.text().then((resText) => {
+
+      let contentType = response.headers.get('Content-Type');
+      if(contentType === 'application/json') {
+
+          let parsedResponse = JSON.parse(resText);
+          console.log(parsedResponse);
+          content.innerHTML += `<p>Message: ${parsedResponse.message}</p>`;
+
+      } else if (contentType === 'text/xml') { //If the server sent back xml
+          //Parse the xml into a document and select the data out.
+          let parsedResponse = new window.DOMParser().parseFromString(resText, 'text/xml');
+          console.log(parsedResponse);
+          content.innerHTML += `<p>Message: ${parsedResponse.querySelector('message').textContent}</p>`;
+      }
+
+    });
+
+      // const fileType = document.getElementById('type');
+      // let jsonObj; 
+      // if(fileType.value == 'application/json') jsonObj = await response.json();
+
+      // // console.log(jsonObj);
+      // content.innerHTML += `<p>Message: ${jsonObj.message}</p>`;
 
     };
 
-    const sendFetch = async (url) => {
+    const sendFetch = async (url, acceptedType) => {
       //Call fetch, wait til we get a response, and then store that response in the variable.
-      let response = await fetch(url);
+      const options = {
+        method: 'GET',
+        headers: {'Accept': acceptedType},
+      }
 
+      // let fetchPromise = await fetch(url, options);
+      let fetchPromise = fetch(url, options);
+      // console.log(options.headers);
       //Call handleResponse with the response we got back from the server.
-      handleResponse(response);
+      // handleResponse(response);
+      fetchPromise.then((response) => { handleResponse(response) });
     };
 
     const consoleTest = () => {
@@ -55,8 +85,9 @@
 
     const init = () => {
       const page = document.getElementById('page');
+      const type = document.getElementById('type');
 
-      const responseType = () => sendFetch(page.value);
+      const responseType = () => sendFetch(page.value,type.value);
 
       const send = document.getElementById('send');
       send.addEventListener('click',responseType);
